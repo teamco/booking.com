@@ -612,6 +612,7 @@
                  */
                 function _stopLoader() {
                     clearInterval(interval);
+                    $('.image-play').html('&#9658;').removeClass('image-stop');
                 }
 
                 $('<div />').addClass('overlay').append(
@@ -627,7 +628,6 @@
                                     $(this).html('&#9616;&#9616;').addClass('image-stop');
                                     _imageAutoLoader('right');
                                 } else {
-                                    $(this).html('&#9658;').removeClass('image-stop');
                                     _stopLoader();
                                 }
                             }),
