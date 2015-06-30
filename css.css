@@ -70,6 +70,8 @@ h2 {
 .photos li img {
     margin: 3px;
     width: 80px;
+    height: 80px;
+	border: none;
 }
 
 .overlay {
