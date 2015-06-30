@@ -208,7 +208,7 @@
                                 alt: prefs.description
                             })
                         ).attr({href: prefs.large})
-                    ).addClass('one_photo')
+                    )
                 );
             }
         }
@@ -293,9 +293,30 @@
                         $('<td />').addClass('room_quantity').append(
                             $('<select />').attr({
                                 name: 'room' + prefs.quantity.type
-                            }).append(options)
+                            }).append(options).on('change', function () {
+
+                                var $this = $(this),
+                                    $selects = $this.parents('table').find('select'),
+                                    $wrapper = $('.total td:last'),
+                                    pattern = /\d+\.\d+/,
+                                    currency = $this.parents('tr').find('.room_price').text().replace(pattern, ''),
+                                    total = 0;
+
+                                $.each($selects, function () {
+
+                                    var $select = $(this),
+                                        rooms = +$select.val(),
+                                        price = $select.parents('tr').find('.room_price').text();
+
+                                    if (rooms) {
+                                        total += +price.match(pattern)[0] * rooms;
+                                    }
+                                });
+
+                                $wrapper.text(currency + (total.toFixed(2)));
+                            })
                         )
-                    ]).addClass('one_room')
+                    ])
                 );
             }
         }
@@ -339,8 +360,12 @@
         }
 
         var keys = Object.keys(data).length,
-            current = to > keys ? keys : to;
-        $('section.reviews h2').html('Reviews (<span>' + current + '</span> of <span>' + keys + '</span>)');
+            current = to > keys ? keys : to,
+            $h2 = $('section.reviews h2'),
+            matchers = $h2.html().match(/\d+/g);
+
+        if (matchers) $h2.html($h2.html().replace(matchers[0], current).replace(matchers[1], keys));
+        else $h2.html('Reviews (<span>' + current + '</span> of <span>' + keys + '</span>)');
         $('ul.reviews_list').html(content);
     }
 
@@ -427,24 +452,33 @@
             for (key in data) items[key] = data[key];
 
             items.sort(function (a, b) {
-                a = +a.ranking;
-                b = +b.ranking;
+                var a1, b1;
                 if (sorted) {
-                    b = +a.ranking;
-                    a = +b.ranking;
+                    a1 = +a.ranking;
+                    b1 = +b.ranking;
+                } else {
+                    b1 = +a.ranking;
+                    a1 = +b.ranking;
                 }
-                return a < b ? -1 : (a > b ? 1 : 0);
+                return a1 < b1 ? -1 : (a1 > b1 ? 1 : 0);
             });
 
             for (i = 0; i < items.length; i++) res[i] = items[i];
 
-            _renderReviews(items, 0, step);
+            $('.reviews_paginate li').off();
+            _renderReviewsPagination(items, step);
         });
     }
 
+    /**
+     * Define reviews pagination
+     * @param data
+     * @param step
+     * @private
+     */
     function _renderReviewsPagination(data, step) {
 
-        var $paginate = $('.reviews_paginate'),
+        var $paginate = $('.reviews_paginate').html(''),
             content = [],
             i = 0, l = Math.ceil(Object.keys(data).length / step);
 
@@ -465,6 +499,116 @@
         });
 
         $paginate.find('li:first').trigger('click');
+    }
+
+    /**
+     * Define image gallery binding
+     * @private
+     */
+    function _bindImageGallery() {
+
+        var $photos = $('.photos li');
+
+        function _resize() {
+
+            var w = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+            var h = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+            var $modal = $('.modal-gallery'),
+                $html = $('html'),
+                delta = ($html.outerHeight() - $html.height()) / 2;
+
+            if ($modal.length) {
+
+                $modal.css({
+                    left: w / 2 - $modal.width() / 2,
+                    top: h / 2 - $modal.height() / 2 - delta
+                });
+            }
+        }
+
+        $(window).on('resize', _resize);
+
+        $.each($photos, function () {
+
+            var $anchor = $(this).find('a');
+
+            var img = new Image;
+            img.src = $anchor[0].href;
+
+            img.onload = function () {
+                $('.image-alt').slideDown();
+            };
+
+            img.onerror = function () {
+                $anchor.off();
+            };
+
+            $anchor.on('click', function (e) {
+
+                e.preventDefault();
+
+                var $this = $(e.target);
+
+                /**
+                 * Update image
+                 * @param {string} side
+                 * @param which
+                 * @private
+                 */
+                function _updateImage(side, which) {
+                    if (which.length) {
+                        $('.modal-gallery img').attr('src', which.attr('href'));
+                        $('.modal-gallery .image-alt').text($('img', which).attr('alt')),
+                            $('.arrow.left').removeClass('disabled');
+                        $('.arrow.right').removeClass('disabled');
+                        $this = which;
+                        _imageAutoLoader();
+                    } else {
+                        $('.arrow.' + side).addClass('disabled');
+                    }
+                }
+
+                /**
+                 * Define image auto rotate
+                 * @private
+                 */
+                function _imageAutoLoader() {
+                    var $preload = $('.modal-gallery .preload'),
+                        maxWidth = parseInt($('.modal-gallery img').width(), 10),
+                        interval = setInterval(function () {
+                            $preload.css('width', parseInt($preload.css('width'), 10) + 2 + 'px');
+                            if (parseInt($preload.css('width'), 10) > maxWidth) {
+                                clearInterval(interval);
+                                $preload.css('width', 1);
+                                $('.modal-gallery .right').trigger('click');
+                            }
+                        }, 10);
+                }
+
+                $('<div />').addClass('overlay').append(
+                    $('<div />').
+                        addClass('modal-gallery').
+                        append([
+                            $('<div title="Move left" class="arrow left" />').html('&#10094;').on('click', function () {
+                                _updateImage('left', $this.parents('li').prev().find('a'));
+                            }),
+                            $('<img />').attr('src', this.href),
+                            $('<div class="image-alt" />').text($('img', $this.parents('li')).attr('alt')),
+                            $('<div title="Move right" class="arrow right" />').html('&#10095;').on('click', function () {
+                                _updateImage('right', $this.parents('li').next().find('a'));
+                            }),
+                            $('<div title="Close" class="close" />').html('&#10006;').on('click', function () {
+                                $('.overlay').off().remove();
+                            }),
+                            $('<div class="preload" />')
+                        ])
+                ).appendTo('body');
+
+                _imageAutoLoader();
+                _resize();
+            });
+        });
     }
 
     /**
@@ -502,6 +646,8 @@
 
         _bindTableSort();
         _bindReviewSort(reviews.items, paginationStep);
+
+        _bindImageGallery();
     });
 
 })();
