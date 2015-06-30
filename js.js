@@ -604,6 +604,8 @@
                             $('.modal-gallery .preload').css('width', 0);
                         }
                     }, 30);
+                    
+                    $('.image-play').html('&#9616;&#9616;').addClass('image-stop');
                 }
 
                 /**
