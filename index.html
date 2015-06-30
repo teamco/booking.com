@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Fantastique</title>
+    <link rel="stylesheet" href="css.css"/>
+    <!--[if lt IE 9]>
+    <script>
+        document.createElement('header');
+        document.createElement('nav');
+        document.createElement('section');
+        document.createElement('article');
+        document.createElement('aside');
+        document.createElement('footer');
+    </script>
+    <![endif]-->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+
+<body>
+
+<header class="header">
+    <h1 class="hotel_name">Hotel Fantastique <span class="stars">★★★★★</span></h1>
+    <address class="hotel_address">72b Rue de Awesome, 75001, Paris, France</address>
+</header>
+
+<section class="photos">
+    <ul></ul>
+</section>
+
+<section class="description">
+    <h2>Description</h2>
+</section>
+
+<section class="facilities">
+    <h2>Facilities</h2>
+    <ul></ul>
+</section>
+
+<section class="rooms">
+    <h2>Select Your Room</h2>
+
+    <form method="post" action="" class="rooms_table_form">
+        <table class="rooms_table" cellspacing="0" cellpadding="0">
+            <thead>
+            <tr>
+                <th class="room_name">Room Name</th>
+                <th class="room_occupancy">Occupancy</th>
+                <th class="room_price">Price per Room</th>
+                <th class="room_quantity">No. Rooms</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+            <tr>
+                <td colspan="4">
+                    <button class="button" type="submit">Book Now</button>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </form>
+</section>
+
+<section class="reviews">
+    <h2>Reviews</h2>
+    <ul class="reviews_list"></ul>
+    <ul class="reviews_paginate"></ul>
+</section>
+
+<section class="footer">
+    &copy;2014 Booking.com
+</section>
+
+<script src="jquery-1.11.1.min.js"></script>
+<script src="config.json.js"></script>
+<script src="js.js"></script>
+</body>
+</html>
