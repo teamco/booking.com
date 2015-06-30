@@ -549,7 +549,6 @@
             img.src = $anchor[0].href;
 
             img.onload = function () {
-                $('.image-alt').slideDown();
             };
 
             img.onerror = function () {
@@ -576,13 +575,16 @@
                             $('.arrow.left').removeClass('disabled');
                         $('.arrow.right').removeClass('disabled');
                         $this = which;
-                        if (event.hasOwnProperty('originalEvent')) {
-                            _stopLoader();
-                        } else {
-                            _imageAutoLoader();
-                        }
                     } else {
                         $('.arrow.' + side).addClass('disabled');
+                        side === 'left' ?
+                            _updateImage(event, side, $('.photos li:last>a')) :
+                            _updateImage(event, side, $('.photos li:first>a'));
+                    }
+                    if (event.hasOwnProperty('originalEvent')) {
+                        _stopLoader();
+                    } else {
+                        _imageAutoLoader(side);
                     }
                 }
 
@@ -590,17 +592,18 @@
                  * Define image auto rotate
                  * @private
                  */
-                function _imageAutoLoader() {
+                function _imageAutoLoader(side) {
                     var $preload = $('.modal-gallery .preload'),
-                        maxWidth = parseInt($('.modal-gallery img').width(), 10);
+                        maxWidth = parseInt($('.modal-gallery').width(), 10);
 
                     interval = setInterval(function () {
                         $preload.css('width', parseInt($preload.css('width'), 10) + 2 + 'px');
                         if (parseInt($preload.css('width'), 10) > maxWidth) {
                             _stopLoader();
-                            $('.modal-gallery .right').trigger('click');
+                            $('.modal-gallery .' + side).trigger('click');
+                            $('.modal-gallery .preload').css('width', 0);
                         }
-                    }, 10);
+                    }, 30);
                 }
 
                 /**
@@ -609,7 +612,6 @@
                  */
                 function _stopLoader() {
                     clearInterval(interval);
-                    $('.modal-gallery .preload').css('width', 0)
                 }
 
                 $('<div />').addClass('overlay').append(
@@ -620,18 +622,28 @@
                                 _updateImage(e, 'left', $this.parents('li').prev().find('a'));
                             }),
                             $('<img />').attr('src', this.href),
+                            $('<div class="image-play" />').html('&#9658;').on('click', function () {
+                                if ($(this).html() === $('<div />').html('&#9658;').html()) {
+                                    $(this).html('&#9616;&#9616;').addClass('image-stop');
+                                    _imageAutoLoader('right');
+                                } else {
+                                    $(this).html('&#9658;').removeClass('image-stop');
+                                    _stopLoader();
+                                }
+                            }),
                             $('<div class="image-alt" />').text($('img', $this.parents('li')).attr('alt')),
                             $('<div title="Move right" class="arrow right" />').html('&#10095;').on('click', function (e) {
                                 _updateImage(e, 'right', $this.parents('li').next().find('a'));
                             }),
                             $('<div title="Close" class="close" />').html('&#10006;').on('click', function () {
                                 $('.overlay').off().remove();
+                                _stopLoader();
                             }),
                             $('<div class="preload" />')
                         ])
                 ).appendTo('body');
 
-                _imageAutoLoader();
+                $('.image-alt').slideDown();
                 _resize();
             });
         });
@@ -683,6 +695,7 @@
 
                 var marker = new google.maps.Marker({
                     map: map,
+                    icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
                     position: results[0].geometry.location
                 });
 

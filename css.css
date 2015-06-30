@@ -119,12 +119,39 @@ h2 {
     text-align: center;
     font-size: 12px;
     overflow: hidden;
+    display: none;
+}
+
+.modal-gallery .image-play {
+    position: absolute;
+    background-color: rgba(255, 255, 255, 0.3);
+    height: 10%;
+    width: 4.85%;
+    top: 45%;
+    left: 47.3%;
+    border-radius: 25px;
+    font-size: 30px;
+    line-height: 45px;
+    text-align: center;
+    color: #666;
+    padding-left: 6px;
+    cursor: pointer;
+}
+
+.modal-gallery .image-play:hover {
+    color: #333;
+    background-color: rgba(255, 255, 255, 0.6);
+}
+
+.modal-gallery .image-play.image-stop {
+    font-size: 20px;
+    text-align: left;
 }
 
 .modal-gallery .preload {
     position: absolute;
     height: 3px;
-    width: 1%;
+    width: 0;
     bottom: -2px;
     padding-right: 2px;
     background: #0896ff;
