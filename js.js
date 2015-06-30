@@ -3,7 +3,7 @@
     if (!Object.keys) {
 
         /**
-         * Defien object keys overrides
+         * Define object keys overrides
          * @param hash
          * @returns {Array}
          */
@@ -16,6 +16,18 @@
             }
             return keys;
         };
+    }
+
+    if (!String.repeat) {
+
+        /**
+         * Define string repeat
+         * @param times
+         * @returns {string}
+         */
+        String.prototype.repeat = function (times) {
+            return new Array(times + 1).join(this);
+        }
     }
 
     /**
@@ -235,7 +247,7 @@
             }
         }
 
-        $('section.description').append(content);
+        $('section.description div:first').append(content);
     }
 
     /**
@@ -612,6 +624,78 @@
     }
 
     /**
+     * Update info
+     * @param hotel
+     * @private
+     */
+    function _updateHotelInfo(hotel) {
+        $('.hotel_name').html(
+            hotel.name + ' <span class="stars">' + '★'.repeat(hotel.ranking) + '</span>'
+        );
+        $('.hotel_address').text(hotel.location);
+    }
+
+    /**
+     * Define map renderer
+     * @param hotel
+     * @private
+     */
+    function _renderMap(hotel) {
+        var geocoder = new google.maps.Geocoder(),
+            mapOptions = {zoom: 15},
+            map = new google.maps.Map($('.description .map')[0], mapOptions),
+            infowindow = new google.maps.InfoWindow(), location,
+            address = hotel.location;
+
+        /**
+         * Create marker
+         * @param place
+         */
+        function createMarker(place) {
+            var marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location
+            });
+            google.maps.event.addListener(marker, 'click', function () {
+                infowindow.setContent(place.name);
+                infowindow.open(map, this);
+            });
+        }
+
+        geocoder.geocode({'address': address}, function (results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                location = results[0].geometry.location;
+                map.setCenter(location);
+
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: results[0].geometry.location
+                });
+
+                var request = {
+                    location: location,
+                    radius: '500',
+                    types: ['store']
+                };
+
+                var service = new google.maps.places.PlacesService(map);
+
+                service.nearbySearch(request, function (results, status) {
+                    if (status == google.maps.places.PlacesServiceStatus.OK) {
+                        for (var i = 0; i < results.length; i++) {
+                            createMarker(results[i]);
+                        }
+                    }
+                });
+
+            } else {
+
+                alert('Geocode was not successful for the following reason: ' + status);
+            }
+        });
+    }
+
+    /**
      * Define hotel instance
      * @type {Item}
      */
@@ -637,16 +721,17 @@
             rooms = _collectItems('Rooms', 3, data.rooms),
             reviews = _collectItems('Reviews', 4, data.reviews);
 
+        _updateHotelInfo(hotel);
+
         _renderImages(images.items);
         _renderDescription(description.items);
         _renderFacilities(facilities.items);
         _renderRooms(rooms.items);
-
         _renderReviewsPagination(reviews.items, paginationStep);
+        _renderMap(hotel);
 
         _bindTableSort();
         _bindReviewSort(reviews.items, paginationStep);
-
         _bindImageGallery();
     });
 
