@@ -104,6 +104,7 @@ h2 {
     width: 20px;
     border: 1px solid #333;
     cursor: pointer;
+    padding-bottom: 2px;
 }
 
 .modal-gallery .arrow.disabled {
