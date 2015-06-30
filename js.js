@@ -560,22 +560,27 @@
 
                 e.preventDefault();
 
-                var $this = $(e.target);
+                var $this = $(e.target), interval;
 
                 /**
                  * Update image
+                 * @param {Event} event
                  * @param {string} side
                  * @param which
                  * @private
                  */
-                function _updateImage(side, which) {
+                function _updateImage(event, side, which) {
                     if (which.length) {
                         $('.modal-gallery img').attr('src', which.attr('href'));
                         $('.modal-gallery .image-alt').text($('img', which).attr('alt')),
                             $('.arrow.left').removeClass('disabled');
                         $('.arrow.right').removeClass('disabled');
                         $this = which;
-                        _imageAutoLoader();
+                        if (event.hasOwnProperty('originalEvent')) {
+                            _stopLoader();
+                        } else {
+                            _imageAutoLoader();
+                        }
                     } else {
                         $('.arrow.' + side).addClass('disabled');
                     }
@@ -587,28 +592,37 @@
                  */
                 function _imageAutoLoader() {
                     var $preload = $('.modal-gallery .preload'),
-                        maxWidth = parseInt($('.modal-gallery img').width(), 10),
-                        interval = setInterval(function () {
-                            $preload.css('width', parseInt($preload.css('width'), 10) + 2 + 'px');
-                            if (parseInt($preload.css('width'), 10) > maxWidth) {
-                                clearInterval(interval);
-                                $preload.css('width', 1);
-                                $('.modal-gallery .right').trigger('click');
-                            }
-                        }, 10);
+                        maxWidth = parseInt($('.modal-gallery img').width(), 10);
+
+                    interval = setInterval(function () {
+                        $preload.css('width', parseInt($preload.css('width'), 10) + 2 + 'px');
+                        if (parseInt($preload.css('width'), 10) > maxWidth) {
+                            _stopLoader();
+                            $('.modal-gallery .right').trigger('click');
+                        }
+                    }, 10);
+                }
+
+                /**
+                 * Define stop loader
+                 * @private
+                 */
+                function _stopLoader() {
+                    clearInterval(interval);
+                    $('.modal-gallery .preload').css('width', 0)
                 }
 
                 $('<div />').addClass('overlay').append(
                     $('<div />').
                         addClass('modal-gallery').
                         append([
-                            $('<div title="Move left" class="arrow left" />').html('&#10094;').on('click', function () {
-                                _updateImage('left', $this.parents('li').prev().find('a'));
+                            $('<div title="Move left" class="arrow left" />').html('&#10094;').on('click', function (e) {
+                                _updateImage(e, 'left', $this.parents('li').prev().find('a'));
                             }),
                             $('<img />').attr('src', this.href),
                             $('<div class="image-alt" />').text($('img', $this.parents('li')).attr('alt')),
-                            $('<div title="Move right" class="arrow right" />').html('&#10095;').on('click', function () {
-                                _updateImage('right', $this.parents('li').next().find('a'));
+                            $('<div title="Move right" class="arrow right" />').html('&#10095;').on('click', function (e) {
+                                _updateImage(e, 'right', $this.parents('li').next().find('a'));
                             }),
                             $('<div title="Close" class="close" />').html('&#10006;').on('click', function () {
                                 $('.overlay').off().remove();
